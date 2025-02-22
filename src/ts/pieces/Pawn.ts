@@ -20,7 +20,7 @@ export class Pawn extends Piece {
         };
 
         if (this.isValidPosition(oneStep) && !board.getPiece(oneStep.row, oneStep.col)) {
-            // Vérifier la promotion
+            // Vérifier si c'est une promotion
             if (oneStep.row === 0 || oneStep.row === 7) {
                 moves.push({ ...oneStep, type: 'promotion' });
             } else {
@@ -28,11 +28,12 @@ export class Pawn extends Piece {
             }
 
             // Mouvement avant de deux cases si le pion n'a pas bougé
-            if (!this.hasMoved) {
+            if (!this.getHasMoved()) {
                 const twoStep: Position = {
                     row: this.position.row + (direction * 2),
                     col: this.position.col
                 };
+
                 if (!board.getPiece(twoStep.row, twoStep.col)) {
                     moves.push({ ...twoStep, type: 'normal' });
                 }
@@ -40,12 +41,12 @@ export class Pawn extends Piece {
         }
 
         // Captures en diagonale
-        const captures: Position[] = [
+        const capturePositions: Position[] = [
             { row: this.position.row + direction, col: this.position.col - 1 },
             { row: this.position.row + direction, col: this.position.col + 1 }
         ];
 
-        for (const capturePos of captures) {
+        for (const capturePos of capturePositions) {
             if (this.isValidPosition(capturePos)) {
                 const targetPiece = board.getPiece(capturePos.row, capturePos.col);
 
@@ -59,15 +60,9 @@ export class Pawn extends Piece {
                 }
 
                 // Prise en passant
-                const adjacentPos: Position = {
-                    row: this.position.row,
-                    col: capturePos.col
-                };
-                const adjacentPiece = board.getPiece(adjacentPos.row, adjacentPos.col);
-
-                if (adjacentPiece && 
-                    adjacentPiece instanceof Pawn && 
-                    (adjacentPiece as Pawn).isEnPassantVulnerable() && 
+                const adjacentPiece = board.getPiece(this.position.row, capturePos.col);
+                if (adjacentPiece instanceof Pawn && 
+                    adjacentPiece.isEnPassantVulnerable() && 
                     adjacentPiece.color !== this.color) {
                     moves.push({ ...capturePos, type: 'en-passant' });
                 }
@@ -78,7 +73,7 @@ export class Pawn extends Piece {
     }
 
     move(newPosition: Position): void {
-        // Si c'est un mouvement de deux cases
+        // Vérifier si c'est un mouvement de deux cases
         if (Math.abs(newPosition.row - this.position.row) === 2) {
             this.enPassantVulnerable = true;
         }
@@ -91,5 +86,12 @@ export class Pawn extends Piece {
 
     resetEnPassantVulnerable(): void {
         this.enPassantVulnerable = false;
+    }
+
+    clone(): Pawn {
+        const cloned = new Pawn(this.color, {...this.position});
+        cloned.setHasMoved(this.getHasMoved());
+        cloned.enPassantVulnerable = this.enPassantVulnerable;
+        return cloned;
     }
 }
