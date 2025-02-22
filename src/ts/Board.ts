@@ -1,4 +1,4 @@
-import { Position, Color } from './types';
+import { Color, Position } from './types';
 import { Piece } from './pieces/Piece';
 import { Pawn } from './pieces/Pawn';
 import { Rook } from './pieces/Rook';
@@ -27,6 +27,11 @@ export class ChessBoard {
         this.pieces = this.createInitialPieces();
     }
 
+    // Ajout de la méthode getCanvas
+    getCanvas(): HTMLCanvasElement {
+        return this.canvas;
+    }
+
     async init(): Promise<void> {
         this.canvas.width = this.squareSize * 8;
         this.canvas.height = this.squareSize * 8;
@@ -35,8 +40,7 @@ export class ChessBoard {
     }
 
     private createInitialPieces(): (Piece | null)[][] {
-        const pieces: (Piece | null)[][] = Array(8).fill(null)
-            .map(() => Array(8).fill(null));
+        const pieces = Array(8).fill(null).map(() => Array(8).fill(null));
         
         // Position initiale des pièces
         const backRow = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook];
@@ -94,6 +98,16 @@ export class ChessBoard {
         }
     }
 
+    selectSquare(position: Position): void {
+        this.selectedSquare = position;
+        this.draw();
+    }
+
+    clearSelection(): void {
+        this.selectedSquare = null;
+        this.draw();
+    }
+
     highlightSquare(position: Position): void {
         this.ctx.fillStyle = 'rgba(255, 255, 0, 0.4)';
         this.ctx.fillRect(
@@ -104,11 +118,11 @@ export class ChessBoard {
         );
     }
 
-    highlightCheck(kingPosition: Position): void {
+    highlightCheck(position: Position): void {
         this.ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
         this.ctx.fillRect(
-            kingPosition.col * this.squareSize,
-            kingPosition.row * this.squareSize,
+            position.col * this.squareSize,
+            position.row * this.squareSize,
             this.squareSize,
             this.squareSize
         );
@@ -140,16 +154,6 @@ export class ChessBoard {
         };
     }
 
-    selectSquare(position: Position): void {
-        this.selectedSquare = position;
-        this.draw();
-    }
-
-    clearSelection(): void {
-        this.selectedSquare = null;
-        this.draw();
-    }
-
     getPiece(row: number, col: number): Piece | null {
         if (row < 0 || row > 7 || col < 0 || col > 7) return null;
         return this.pieces[row][col];
@@ -159,64 +163,55 @@ export class ChessBoard {
         const piece = this.getPiece(from.row, from.col);
         if (!piece) return false;
 
-        const validMoves = piece.getValidMoves(this);
-        const isValidMove = validMoves.some(move => 
-            move.row === to.row && 
-            move.col === to.col
-        );
-
-        if (isValidMove) {
-            if (piece instanceof King) {
-                this.handleCastling(piece, to);
-            }
-
-            if (piece instanceof Pawn) {
-                this.handleEnPassant(piece, from, to);
-            }
-
-            this.pieces[from.row][from.col] = null;
-            this.pieces[to.row][to.col] = piece;
-            piece.move(to);
-
-            this.draw();
-            return true;
-        }
-        return false;
+        this.pieces[from.row][from.col] = null;
+        this.pieces[to.row][to.col] = piece;
+        piece.move(to);
+        this.draw();
+        return true;
     }
 
-    private handleCastling(king: King, to: Position): void {
-        const castlingCol = to.col;
-        const row = king.position.row;
+    promotePawn(position: Position, type: 'queen' | 'rook' | 'bishop' | 'knight'): void {
+        const piece = this.getPiece(position.row, position.col);
+        if (!(piece instanceof Pawn)) return;
 
-        if (Math.abs(castlingCol - king.position.col) === 2) {
-            // C'est un roque
-            const isKingSide = castlingCol === 6;
-            const rookFromCol = isKingSide ? 7 : 0;
-            const rookToCol = isKingSide ? 5 : 3;
-
-            const rook = this.getPiece(row, rookFromCol);
-            if (rook instanceof Rook) {
-                this.pieces[row][rookFromCol] = null;
-                this.pieces[row][rookToCol] = rook;
-                rook.move({row, col: rookToCol});
-            }
+        let newPiece: Piece;
+        switch (type) {
+            case 'queen':
+                newPiece = new Queen(piece.color, position);
+                break;
+            case 'rook':
+                newPiece = new Rook(piece.color, position);
+                break;
+            case 'bishop':
+                newPiece = new Bishop(piece.color, position);
+                break;
+            case 'knight':
+                newPiece = new Knight(piece.color, position);
+                break;
         }
+
+        this.pieces[position.row][position.col] = newPiece;
+        this.draw();
     }
 
-    private handleEnPassant(pawn: Pawn, from: Position, to: Position): void {
-        if (Math.abs(from.col - to.col) === 1 && !this.getPiece(to.row, to.col)) {
-            // C'est une prise en passant
-            this.pieces[from.row][to.col] = null;
+    resetEnPassant(): void {
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const piece = this.pieces[row][col];
+                if (piece instanceof Pawn) {
+                    piece.resetEnPassantVulnerable();
+                }
+            }
         }
     }
 
     clone(): ChessBoard {
-        const newBoard = new ChessBoard();
-        newBoard.pieces = this.pieces.map(row => 
-            row.map(piece => 
-                piece ? piece.clone() : null
-            )
+        const clonedBoard = new ChessBoard();
+        
+        clonedBoard.pieces = this.pieces.map(row => 
+            row.map(piece => piece ? piece.clone() : null)
         );
-        return newBoard;
+        
+        return clonedBoard;
     }
 }
