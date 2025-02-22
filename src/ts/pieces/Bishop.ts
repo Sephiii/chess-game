@@ -25,6 +25,8 @@ export class Bishop extends Piece {
     }
 
     clone(): Bishop {
-        return new Bishop(this.color, {...this.position});
+        const cloned = new Bishop(this.color, {...this.position});
+        cloned.setHasMoved(this.getHasMoved());
+        return cloned;
     }
 }
