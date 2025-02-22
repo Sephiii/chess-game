@@ -6,7 +6,7 @@ class ChessGame {
         this.init();
     }
 
-    init() {
+    async init() {
         this.updateStatus();
         this.setupEventListeners();
     }
@@ -20,14 +20,27 @@ class ChessGame {
         const x = event.clientX - rect.left;
         const y = event.clientY - rect.top;
         const square = this.board.getSquareFromCoords(x, y);
+        
+        // Vérifier si la case est dans les limites du plateau
+        if (square.row < 0 || square.row > 7 || square.col < 0 || square.col > 7) {
+            return;
+        }
 
         if (this.selectedSquare === null) {
-            this.selectedSquare = square;
-            this.board.highlightSquare(square.row, square.col);
+            const piece = this.board.getPiece(square.row, square.col);
+            if (piece && piece.startsWith(this.currentPlayer)) {
+                this.selectedSquare = square;
+                this.board.selectSquare(square.row, square.col);
+            }
         } else {
-            // Simuler un mouvement
-            this.board.drawBoard(); // Redessine le plateau
-            this.board.initializePieces(); // Redessine les pièces
+            // Déplacer la pièce
+            this.board.movePiece(
+                this.selectedSquare.row,
+                this.selectedSquare.col,
+                square.row,
+                square.col
+            );
+            this.board.clearSelection();
             this.selectedSquare = null;
             this.switchPlayer();
         }
