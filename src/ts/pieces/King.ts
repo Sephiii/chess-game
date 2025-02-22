@@ -35,10 +35,10 @@ export class King extends Piece {
         }
 
         // Vérifier les possibilités de roque
-        if (!this.hasMoved && !GameRules.isInCheck(board, this.color)) {
+        if (!this.getHasMoved() && !GameRules.isInCheck(board, this.color)) {
             // Petit roque
             const kingSideRook = board.getPiece(this.position.row, 7);
-            if (kingSideRook instanceof Rook && !kingSideRook.hasMoved) {
+            if (kingSideRook instanceof Rook && !kingSideRook.getHasMoved()) {
                 const path: Position[] = [
                     { row: this.position.row, col: 5 },
                     { row: this.position.row, col: 6 }
@@ -55,7 +55,7 @@ export class King extends Piece {
 
             // Grand roque
             const queenSideRook = board.getPiece(this.position.row, 0);
-            if (queenSideRook instanceof Rook && !queenSideRook.hasMoved) {
+            if (queenSideRook instanceof Rook && !queenSideRook.getHasMoved()) {
                 const path: Position[] = [
                     { row: this.position.row, col: 3 },
                     { row: this.position.row, col: 2 },
@@ -91,7 +91,7 @@ export class King extends Piece {
 
     clone(): King {
         const cloned = new King(this.color, {...this.position});
-        cloned.hasMoved = this.hasMoved;
+        cloned.setHasMoved(this.getHasMoved());
         return cloned;
     }
 }
