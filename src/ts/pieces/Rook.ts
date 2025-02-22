@@ -26,7 +26,7 @@ export class Rook extends Piece {
 
     clone(): Rook {
         const cloned = new Rook(this.color, {...this.position});
-        cloned.hasMoved = this.hasMoved;
+        cloned.setHasMoved(this.getHasMoved());
         return cloned;
     }
 }
