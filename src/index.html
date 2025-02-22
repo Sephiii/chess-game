@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu d'Échecs</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="app">
+        <h1>Jeu d'Échecs</h1>
+        <canvas id="chessboard"></canvas>
+        <div id="game-info">
+            <div id="current-player"></div>
+            <div id="move-history"></div>
+        </div>
+        <div id="controls">
+            <button id="restart-btn">Nouvelle Partie</button>
+        </div>
+    </div>
+    <script type="module">
+        import { ChessGame } from './js/Game.js';
+        
+        document.addEventListener('DOMContentLoaded', async () => {
+            const game = new ChessGame();
+            await game.init();
+
+            document.getElementById('restart-btn')?.addEventListener('click', () => {
+                game.restart();
+            });
+        });
+    </script>
+</body>
+</html>
