@@ -15,6 +15,20 @@ class ChessBoard {
         this.draw();
     }
 
+    drawPiece(row, col, piece) {
+        const x = col * this.squareSize + this.squareSize / 2;
+        const y = row * this.squareSize + this.squareSize / 2;
+        const radius = this.squareSize / 3;
+
+        this.ctx.beginPath();
+        this.ctx.arc(x, y, radius, 0, Math.PI * 2);
+        this.ctx.fillStyle = piece.color;
+        this.ctx.fill();
+        this.ctx.strokeStyle = piece.color === 'white' ? 'black' : 'white';
+        this.ctx.lineWidth = 2;
+        this.ctx.stroke();
+    }
+
     createInitialPieces() {
         const pieces = new Array(8).fill(null).map(() => new Array(8).fill(null));
         
@@ -34,26 +48,6 @@ class ChessBoard {
         }
 
         return pieces;
-    }
-
-    clone() {
-        const clonedPieces = new Array(8).fill(null).map(() => new Array(8).fill(null));
-        
-        for (let row = 0; row < 8; row++) {
-            for (let col = 0; col < 8; col++) {
-                const piece = this.pieces[row][col];
-                if (piece) {
-                    const PieceClass = piece.constructor;
-                    clonedPieces[row][col] = new PieceClass(piece.color, {row, col});
-                    clonedPieces[row][col].hasMoved = piece.hasMoved;
-                    if (piece instanceof Pawn) {
-                        clonedPieces[row][col].enPassantVulnerable = piece.enPassantVulnerable;
-                    }
-                }
-            }
-        }
-        
-        return new ChessBoard(clonedPieces);
     }
 
     draw() {
@@ -85,10 +79,7 @@ class ChessBoard {
             for (let col = 0; col < 8; col++) {
                 const piece = this.pieces[row][col];
                 if (piece) {
-                    const x = col * this.squareSize + this.squareSize / 2;
-                    const y = row * this.squareSize + this.squareSize / 2;
-                    const spriteName = `${piece.color}-${piece.type}`;
-                    PieceSprite.drawPiece(this.ctx, spriteName, x, y);
+                    this.drawPiece(row, col, piece);
                 }
             }
         }
@@ -156,23 +147,12 @@ class ChessBoard {
         return this.pieces[row][col];
     }
 
-    isValidMove(fromRow, fromCol, toRow, toCol) {
-        const piece = this.getPiece(fromRow, fromCol);
-        if (!piece) return false;
-
-        const validMoves = piece.getValidMoves(this);
-        return validMoves.some(move => 
-            move.row === toRow && 
-            move.col === toCol && 
-            !GameRules.wouldMoveIntoCheck(this, fromRow, fromCol, toRow, toCol, piece.color)
-        );
-    }
-
     movePiece(fromRow, fromCol, toRow, toCol) {
         const piece = this.pieces[fromRow][fromCol];
         if (!piece) return false;
 
-        if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
+        const validMoves = piece.getValidMoves(this);
+        if (validMoves.some(move => move.row === toRow && move.col === toCol)) {
             // Gestion spéciale pour le roque
             if (piece instanceof King) {
                 piece.handleCastling(this, {row: toRow, col: toCol});
@@ -183,15 +163,26 @@ class ChessBoard {
             this.pieces[toRow][toCol] = piece;
             piece.move({row: toRow, col: toCol});
 
-            // Gestion spéciale pour la prise en passant
-            if (piece instanceof Pawn && Math.abs(fromCol - toCol) === 1 && !this.pieces[fromRow][toCol]) {
-                // C'est une prise en passant, on retire le pion adverse
-                this.pieces[fromRow][toCol] = null;
-            }
-
             this.draw();
             return true;
         }
         return false;
+    }
+
+    clone() {
+        const clonedPieces = new Array(8).fill(null).map(() => new Array(8).fill(null));
+        
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const piece = this.pieces[row][col];
+                if (piece) {
+                    const PieceClass = piece.constructor;
+                    clonedPieces[row][col] = new PieceClass(piece.color, {row, col});
+                    clonedPieces[row][col].hasMoved = piece.hasMoved;
+                }
+            }
+        }
+        
+        return new ChessBoard(clonedPieces);
     }
 }
