@@ -1,0 +1,24 @@
+{
+  "name": "chess-game",
+  "version": "1.0.0",
+  "description": "Jeu d'échecs en TypeScript",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "start": "lite-server",
+    "dev": "concurrently \"npm run watch\" \"npm run start\"",
+    "test": "jest"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/jest": "^29.5.0",
+    "@types/node": "^18.15.11",
+    "concurrently": "^8.0.1",
+    "jest": "^29.5.0",
+    "lite-server": "^2.6.1",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.0.4"
+  }
+}
