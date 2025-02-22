@@ -1,16 +1,17 @@
 class ChessGame {
     constructor() {
-        this.board = new ChessBoard();
+        this.board = null;
         this.currentPlayer = 'white';
         this.selectedSquare = null;
         this.gameStatus = {
             status: 'ongoing',
             winner: null
         };
-        this.init();
     }
 
     async init() {
+        this.board = new ChessBoard();
+        await this.board.init();
         this.setupEventListeners();
         this.updateStatus();
     }
@@ -83,8 +84,6 @@ class ChessGame {
 
     updateGameStatus() {
         this.gameStatus = GameRules.getGameStatus(this.board, this.currentPlayer);
-        
-        // Mettre à jour l'affichage
         this.updateStatus();
         
         // Si le roi est en échec, le mettre en surbrillance
@@ -115,3 +114,9 @@ class ChessGame {
         statusElement.textContent = statusText;
     }
 }
+
+// Initialisation du jeu
+document.addEventListener('DOMContentLoaded', async () => {
+    const game = new ChessGame();
+    await game.init();
+});
