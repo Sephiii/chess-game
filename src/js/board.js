@@ -15,6 +15,27 @@ class ChessBoard {
         this.draw();
     }
 
+    createInitialPieces() {
+        const pieces = new Array(8).fill(null).map(() => new Array(8).fill(null));
+        
+        // Position initiale des pièces
+        const backRow = [Rook, Knight, Bishop, Queen, King, Bishop, Knight, Rook];
+        
+        // Pièces noires
+        for (let col = 0; col < 8; col++) {
+            pieces[0][col] = new backRow[col]('black', {row: 0, col: col});
+            pieces[1][col] = new Pawn('black', {row: 1, col: col});
+        }
+
+        // Pièces blanches
+        for (let col = 0; col < 8; col++) {
+            pieces[7][col] = new backRow[col]('white', {row: 7, col: col});
+            pieces[6][col] = new Pawn('white', {row: 6, col: col});
+        }
+
+        return pieces;
+    }
+
     clone() {
         const clonedPieces = new Array(8).fill(null).map(() => new Array(8).fill(null));
         
@@ -25,47 +46,14 @@ class ChessBoard {
                     const PieceClass = piece.constructor;
                     clonedPieces[row][col] = new PieceClass(piece.color, {row, col});
                     clonedPieces[row][col].hasMoved = piece.hasMoved;
+                    if (piece instanceof Pawn) {
+                        clonedPieces[row][col].enPassantVulnerable = piece.enPassantVulnerable;
+                    }
                 }
             }
         }
         
         return new ChessBoard(clonedPieces);
-    }
-
-    createInitialPieces() {
-        const pieces = new Array(8).fill(null).map(() => new Array(8).fill(null));
-        
-        // Placement des pièces noires
-        pieces[0][0] = new Rook('black', {row: 0, col: 0});
-        pieces[0][1] = new Knight('black', {row: 0, col: 1});
-        pieces[0][2] = new Bishop('black', {row: 0, col: 2});
-        pieces[0][3] = new Queen('black', {row: 0, col: 3});
-        pieces[0][4] = new King('black', {row: 0, col: 4});
-        pieces[0][5] = new Bishop('black', {row: 0, col: 5});
-        pieces[0][6] = new Knight('black', {row: 0, col: 6});
-        pieces[0][7] = new Rook('black', {row: 0, col: 7});
-
-        // Pions noirs
-        for (let col = 0; col < 8; col++) {
-            pieces[1][col] = new Pawn('black', {row: 1, col: col});
-        }
-
-        // Placement des pièces blanches
-        pieces[7][0] = new Rook('white', {row: 7, col: 0});
-        pieces[7][1] = new Knight('white', {row: 7, col: 1});
-        pieces[7][2] = new Bishop('white', {row: 7, col: 2});
-        pieces[7][3] = new Queen('white', {row: 7, col: 3});
-        pieces[7][4] = new King('white', {row: 7, col: 4});
-        pieces[7][5] = new Bishop('white', {row: 7, col: 5});
-        pieces[7][6] = new Knight('white', {row: 7, col: 6});
-        pieces[7][7] = new Rook('white', {row: 7, col: 7});
-
-        // Pions blancs
-        for (let col = 0; col < 8; col++) {
-            pieces[6][col] = new Pawn('white', {row: 6, col: col});
-        }
-
-        return pieces;
     }
 
     draw() {
@@ -194,6 +182,12 @@ class ChessBoard {
             this.pieces[fromRow][fromCol] = null;
             this.pieces[toRow][toCol] = piece;
             piece.move({row: toRow, col: toCol});
+
+            // Gestion spéciale pour la prise en passant
+            if (piece instanceof Pawn && Math.abs(fromCol - toCol) === 1 && !this.pieces[fromRow][toCol]) {
+                // C'est une prise en passant, on retire le pion adverse
+                this.pieces[fromRow][toCol] = null;
+            }
 
             this.draw();
             return true;
