@@ -34,6 +34,8 @@ export class Knight extends Piece {
     }
 
     clone(): Knight {
-        return new Knight(this.color, {...this.position});
+        const cloned = new Knight(this.color, {...this.position});
+        cloned.setHasMoved(this.getHasMoved());
+        return cloned;
     }
 }
