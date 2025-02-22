@@ -3,7 +3,7 @@ class ChessBoard {
         this.canvas = document.getElementById('chessboard');
         this.ctx = this.canvas.getContext('2d');
         this.squareSize = 60;
-        this.board = this.createInitialBoard();
+        this.pieces = this.createInitialPieces();
         this.selectedSquare = null;
         this.init();
     }
@@ -15,29 +15,40 @@ class ChessBoard {
         this.draw();
     }
 
-    createInitialBoard() {
-        const board = new Array(8).fill(null).map(() => new Array(8).fill(null));
-        
-        // Placement des pièces
-        const backRowOrder = ['rook', 'knight', 'bishop', 'queen', 'king', 'bishop', 'knight', 'rook'];
+    createInitialPieces() {
+        const pieces = new Array(8).fill(null).map(() => new Array(8).fill(null));
         
         // Placement des pièces noires
-        backRowOrder.forEach((piece, col) => {
-            board[0][col] = `black-${piece}`;
-        });
+        pieces[0][0] = new Rook('black', {row: 0, col: 0});
+        pieces[0][1] = new Knight('black', {row: 0, col: 1});
+        pieces[0][2] = new Bishop('black', {row: 0, col: 2});
+        pieces[0][3] = new Queen('black', {row: 0, col: 3});
+        pieces[0][4] = new King('black', {row: 0, col: 4});
+        pieces[0][5] = new Bishop('black', {row: 0, col: 5});
+        pieces[0][6] = new Knight('black', {row: 0, col: 6});
+        pieces[0][7] = new Rook('black', {row: 0, col: 7});
+
+        // Pions noirs
         for (let col = 0; col < 8; col++) {
-            board[1][col] = 'black-pawn';
+            pieces[1][col] = new Pawn('black', {row: 1, col: col});
         }
-        
+
         // Placement des pièces blanches
-        backRowOrder.forEach((piece, col) => {
-            board[7][col] = `white-${piece}`;
-        });
+        pieces[7][0] = new Rook('white', {row: 7, col: 0});
+        pieces[7][1] = new Knight('white', {row: 7, col: 1});
+        pieces[7][2] = new Bishop('white', {row: 7, col: 2});
+        pieces[7][3] = new Queen('white', {row: 7, col: 3});
+        pieces[7][4] = new King('white', {row: 7, col: 4});
+        pieces[7][5] = new Bishop('white', {row: 7, col: 5});
+        pieces[7][6] = new Knight('white', {row: 7, col: 6});
+        pieces[7][7] = new Rook('white', {row: 7, col: 7});
+
+        // Pions blancs
         for (let col = 0; col < 8; col++) {
-            board[6][col] = 'white-pawn';
+            pieces[6][col] = new Pawn('white', {row: 6, col: col});
         }
-        
-        return board;
+
+        return pieces;
     }
 
     draw() {
@@ -45,6 +56,7 @@ class ChessBoard {
         this.drawPieces();
         if (this.selectedSquare) {
             this.highlightSquare(this.selectedSquare.row, this.selectedSquare.col);
+            this.highlightValidMoves(this.selectedSquare);
         }
     }
 
@@ -66,11 +78,12 @@ class ChessBoard {
     drawPieces() {
         for (let row = 0; row < 8; row++) {
             for (let col = 0; col < 8; col++) {
-                const piece = this.board[row][col];
+                const piece = this.pieces[row][col];
                 if (piece) {
                     const x = col * this.squareSize + this.squareSize / 2;
                     const y = row * this.squareSize + this.squareSize / 2;
-                    PieceSprite.drawPiece(this.ctx, piece, x, y);
+                    const spriteName = `${piece.color}-${piece.type}`;
+                    PieceSprite.drawPiece(this.ctx, spriteName, x, y);
                 }
             }
         }
@@ -84,6 +97,25 @@ class ChessBoard {
             this.squareSize,
             this.squareSize
         );
+    }
+
+    highlightValidMoves(square) {
+        const piece = this.getPiece(square.row, square.col);
+        if (!piece) return;
+
+        const validMoves = piece.getValidMoves(this);
+        for (const move of validMoves) {
+            this.ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+            this.ctx.beginPath();
+            this.ctx.arc(
+                move.col * this.squareSize + this.squareSize / 2,
+                move.row * this.squareSize + this.squareSize / 2,
+                this.squareSize / 4,
+                0,
+                Math.PI * 2
+            );
+            this.ctx.fill();
+        }
     }
 
     getSquareFromCoords(x, y) {
@@ -103,13 +135,36 @@ class ChessBoard {
     }
 
     getPiece(row, col) {
-        return this.board[row][col];
+        if (row < 0 || row > 7 || col < 0 || col > 7) return null;
+        return this.pieces[row][col];
+    }
+
+    isValidMove(fromRow, fromCol, toRow, toCol) {
+        const piece = this.getPiece(fromRow, fromCol);
+        if (!piece) return false;
+
+        const validMoves = piece.getValidMoves(this);
+        return validMoves.some(move => move.row === toRow && move.col === toCol);
     }
 
     movePiece(fromRow, fromCol, toRow, toCol) {
-        const piece = this.board[fromRow][fromCol];
-        this.board[fromRow][fromCol] = null;
-        this.board[toRow][toCol] = piece;
-        this.draw();
+        const piece = this.pieces[fromRow][fromCol];
+        if (!piece) return false;
+
+        if (this.isValidMove(fromRow, fromCol, toRow, toCol)) {
+            // Gestion spéciale pour le roque
+            if (piece instanceof King) {
+                piece.handleCastling(this, {row: toRow, col: toCol});
+            }
+
+            // Déplacement de la pièce
+            this.pieces[fromRow][fromCol] = null;
+            this.pieces[toRow][toCol] = piece;
+            piece.move({row: toRow, col: toCol});
+
+            this.draw();
+            return true;
+        }
+        return false;
     }
 }
