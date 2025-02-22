@@ -3,6 +3,7 @@ class Piece {
         this.color = color;
         this.position = position;
         this.hasMoved = false;
+        this.type = 'piece'; // Type par défaut, sera surchargé par les classes enfants
     }
 
     getValidMoves(board) {
@@ -18,34 +19,27 @@ class Piece {
         return position.row >= 0 && position.row < 8 && position.col >= 0 && position.col < 8;
     }
 
-    // Vérifie si une case est vide ou contient une pièce adverse
     canMoveTo(board, position) {
         if (!this.isValidPosition(position)) return false;
-        
         const piece = board.getPiece(position.row, position.col);
-        if (!piece) return true; // Case vide
-        return piece.color !== this.color; // Pièce adverse
+        return !piece || piece.color !== this.color;
     }
 
-    // Obtient toutes les cases valides dans une direction donnée jusqu'à une obstruction
     getMovesInDirection(board, rowDir, colDir) {
         const moves = [];
         let currentRow = this.position.row + rowDir;
         let currentCol = this.position.col + colDir;
 
         while (this.isValidPosition({row: currentRow, col: currentCol})) {
-            const targetPosition = {row: currentRow, col: currentCol};
-            const targetPiece = board.getPiece(currentRow, currentCol);
-
-            if (!targetPiece) {
-                moves.push(targetPosition);
+            const piece = board.getPiece(currentRow, currentCol);
+            if (!piece) {
+                moves.push({row: currentRow, col: currentCol});
             } else {
-                if (targetPiece.color !== this.color) {
-                    moves.push(targetPosition);
+                if (piece.color !== this.color) {
+                    moves.push({row: currentRow, col: currentCol});
                 }
                 break;
             }
-
             currentRow += rowDir;
             currentCol += colDir;
         }
