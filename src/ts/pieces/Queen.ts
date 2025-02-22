@@ -29,6 +29,8 @@ export class Queen extends Piece {
     }
 
     clone(): Queen {
-        return new Queen(this.color, {...this.position});
+        const cloned = new Queen(this.color, {...this.position});
+        cloned.setHasMoved(this.getHasMoved());
+        return cloned;
     }
 }
