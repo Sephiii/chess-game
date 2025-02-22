@@ -12,6 +12,8 @@ export abstract class Piece {
 
     abstract getValidMoves(board: ChessBoard): ValidMove[];
 
+    abstract clone(): Piece;
+
     move(newPosition: Position): void {
         this.position = newPosition;
         this.hasMoved = true;
@@ -71,5 +73,13 @@ export abstract class Piece {
     getMoveType(board: ChessBoard, targetPosition: Position): 'normal' | 'capture' {
         const targetPiece = board.getPiece(targetPosition.row, targetPosition.col);
         return targetPiece ? 'capture' : 'normal';
+    }
+
+    getHasMoved(): boolean {
+        return this.hasMoved;
+    }
+
+    setHasMoved(value: boolean): void {
+        this.hasMoved = value;
     }
 }
