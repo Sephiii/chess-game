@@ -1,0 +1,13 @@
+{
+  "port": 3000,
+  "files": ["./dist/**/*.{html,css,js,ts}"],
+  "server": {
+    "baseDir": "./dist",
+    "routes": {
+      "/node_modules": "node_modules"
+    }
+  },
+  "browser": "default",
+  "watch": true,
+  "ignore": ["node_modules", ".git"]
+}
