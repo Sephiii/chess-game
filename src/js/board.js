@@ -1,11 +1,11 @@
 class ChessBoard {
-    constructor() {
+    constructor(pieces = null) {
         this.canvas = document.getElementById('chessboard');
         this.ctx = this.canvas.getContext('2d');
         this.squareSize = 60;
-        this.pieces = this.createInitialPieces();
+        this.pieces = pieces || this.createInitialPieces();
         this.selectedSquare = null;
-        this.init();
+        if (!pieces) this.init();
     }
 
     async init() {
@@ -13,6 +13,23 @@ class ChessBoard {
         this.canvas.height = this.squareSize * 8;
         await PieceSprite.loadSprites();
         this.draw();
+    }
+
+    clone() {
+        const clonedPieces = new Array(8).fill(null).map(() => new Array(8).fill(null));
+        
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                const piece = this.pieces[row][col];
+                if (piece) {
+                    const PieceClass = piece.constructor;
+                    clonedPieces[row][col] = new PieceClass(piece.color, {row, col});
+                    clonedPieces[row][col].hasMoved = piece.hasMoved;
+                }
+            }
+        }
+        
+        return new ChessBoard(clonedPieces);
     }
 
     createInitialPieces() {
@@ -99,22 +116,34 @@ class ChessBoard {
         );
     }
 
+    highlightCheck(kingPosition) {
+        this.ctx.fillStyle = 'rgba(255, 0, 0, 0.4)';
+        this.ctx.fillRect(
+            kingPosition.col * this.squareSize,
+            kingPosition.row * this.squareSize,
+            this.squareSize,
+            this.squareSize
+        );
+    }
+
     highlightValidMoves(square) {
         const piece = this.getPiece(square.row, square.col);
         if (!piece) return;
 
         const validMoves = piece.getValidMoves(this);
         for (const move of validMoves) {
-            this.ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
-            this.ctx.beginPath();
-            this.ctx.arc(
-                move.col * this.squareSize + this.squareSize / 2,
-                move.row * this.squareSize + this.squareSize / 2,
-                this.squareSize / 4,
-                0,
-                Math.PI * 2
-            );
-            this.ctx.fill();
+            if (!GameRules.wouldMoveIntoCheck(this, square.row, square.col, move.row, move.col, piece.color)) {
+                this.ctx.fillStyle = 'rgba(0, 255, 0, 0.3)';
+                this.ctx.beginPath();
+                this.ctx.arc(
+                    move.col * this.squareSize + this.squareSize / 2,
+                    move.row * this.squareSize + this.squareSize / 2,
+                    this.squareSize / 4,
+                    0,
+                    Math.PI * 2
+                );
+                this.ctx.fill();
+            }
         }
     }
 
@@ -144,7 +173,11 @@ class ChessBoard {
         if (!piece) return false;
 
         const validMoves = piece.getValidMoves(this);
-        return validMoves.some(move => move.row === toRow && move.col === toCol);
+        return validMoves.some(move => 
+            move.row === toRow && 
+            move.col === toCol && 
+            !GameRules.wouldMoveIntoCheck(this, fromRow, fromCol, toRow, toCol, piece.color)
+        );
     }
 
     movePiece(fromRow, fromCol, toRow, toCol) {
