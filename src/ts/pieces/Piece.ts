@@ -1,5 +1,5 @@
-import { Color, Position, ValidMove } from '../types.js';
-import { ChessBoard } from '../Board.js';
+import { Color, Position, ValidMove } from '../types';
+import { ChessBoard } from '../Board';
 
 export abstract class Piece {
     protected hasMoved: boolean = false;
@@ -11,7 +11,6 @@ export abstract class Piece {
     ) {}
 
     abstract getValidMoves(board: ChessBoard): ValidMove[];
-
     abstract clone(): Piece;
 
     move(newPosition: Position): void {
@@ -26,53 +25,36 @@ export abstract class Piece {
                position.col < 8;
     }
 
-    protected canMoveTo(board: ChessBoard, position: Position): boolean {
-        if (!this.isValidPosition(position)) return false;
-        
-        const piece = board.getPiece(position.row, position.col);
-        return !piece || piece.color !== this.color;
-    }
-
-    protected getMovesInDirection(
-        board: ChessBoard, 
-        rowDir: number, 
-        colDir: number
-    ): ValidMove[] {
+    protected getMovesInDirection(board: ChessBoard, rowDir: number, colDir: number): ValidMove[] {
         const moves: ValidMove[] = [];
-        let currentRow = this.position.row + rowDir;
-        let currentCol = this.position.col + colDir;
+        let newRow = this.position.row + rowDir;
+        let newCol = this.position.col + colDir;
 
-        while (this.isValidPosition({row: currentRow, col: currentCol})) {
-            const targetPosition = {row: currentRow, col: currentCol};
-            const piece = board.getPiece(currentRow, currentCol);
-
-            if (!piece) {
+        while (newRow >= 0 && newRow < 8 && newCol >= 0 && newCol < 8) {
+            const targetPiece = board.getPiece(newRow, newCol);
+            
+            if (!targetPiece) {
                 moves.push({
-                    row: currentRow,
-                    col: currentCol,
+                    row: newRow,
+                    col: newCol,
                     type: 'normal'
                 });
             } else {
-                if (piece.color !== this.color) {
+                if (targetPiece.color !== this.color) {
                     moves.push({
-                        row: currentRow,
-                        col: currentCol,
+                        row: newRow,
+                        col: newCol,
                         type: 'capture'
                     });
                 }
                 break;
             }
 
-            currentRow += rowDir;
-            currentCol += colDir;
+            newRow += rowDir;
+            newCol += colDir;
         }
 
         return moves;
-    }
-
-    getMoveType(board: ChessBoard, targetPosition: Position): 'normal' | 'capture' {
-        const targetPiece = board.getPiece(targetPosition.row, targetPosition.col);
-        return targetPiece ? 'capture' : 'normal';
     }
 
     getHasMoved(): boolean {
