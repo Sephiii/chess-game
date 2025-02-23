@@ -1,8 +1,7 @@
-import { Piece } from './Piece.js';
-import { Color, Position, ValidMove } from '../types.js';
-import { ChessBoard } from '../Board.js';
-import { Rook } from './Rook.js';
-import { GameRules } from '../GameRules.js';
+import { Piece } from './Piece';
+import { Color, Position, ValidMove } from '../types';
+import { ChessBoard } from '../Board';
+import { Rook } from './Rook';
 
 export class King extends Piece {
     constructor(color: Color, position: Position) {
@@ -11,82 +10,104 @@ export class King extends Piece {
 
     getValidMoves(board: ChessBoard): ValidMove[] {
         const moves: ValidMove[] = [];
-        
-        // Mouvements normaux du roi (une case dans toutes les directions)
         const directions: [number, number][] = [
             [-1, -1], [-1, 0], [-1, 1],  // Haut
             [0, -1], [0, 1],             // Milieu
             [1, -1], [1, 0], [1, 1]      // Bas
         ];
 
+        // Mouvements normaux
         for (const [rowOffset, colOffset] of directions) {
-            const newPosition: Position = {
-                row: this.position.row + rowOffset,
-                col: this.position.col + colOffset
-            };
+            const newRow = this.position.row + rowOffset;
+            const newCol = this.position.col + colOffset;
+            const newPosition: Position = { row: newRow, col: newCol };
 
-            if (this.canMoveTo(board, newPosition) && 
-                !GameRules.isSquareUnderAttack(board, newPosition, this.color === 'white' ? 'black' : 'white')) {
-                moves.push({
-                    ...newPosition,
-                    type: this.getMoveType(board, newPosition)
-                });
+            if (this.isValidPosition(newPosition)) {
+                const targetPiece = board.getPiece(newRow, newCol);
+                if (!targetPiece || targetPiece.color !== this.color) {
+                    moves.push({
+                        row: newRow,
+                        col: newCol,
+                        type: targetPiece ? 'capture' : 'normal'
+                    });
+                }
             }
         }
 
-        // Vérifier les possibilités de roque
-        if (!this.getHasMoved() && !GameRules.isInCheck(board, this.color)) {
+        // Roque
+        if (!this.hasMoved) {
             // Petit roque
-            const kingSideRook = board.getPiece(this.position.row, 7);
-            if (kingSideRook instanceof Rook && !kingSideRook.getHasMoved()) {
-                const path: Position[] = [
-                    { row: this.position.row, col: 5 },
-                    { row: this.position.row, col: 6 }
-                ];
-                
-                if (this.isCastlingPathClear(board, path)) {
-                    moves.push({
-                        row: this.position.row,
-                        col: 6,
-                        type: 'castle'
-                    });
-                }
+            if (this.canCastleKingside(board)) {
+                moves.push({
+                    row: this.position.row,
+                    col: this.position.col + 2,
+                    type: 'castle'
+                });
             }
 
             // Grand roque
-            const queenSideRook = board.getPiece(this.position.row, 0);
-            if (queenSideRook instanceof Rook && !queenSideRook.getHasMoved()) {
-                const path: Position[] = [
-                    { row: this.position.row, col: 3 },
-                    { row: this.position.row, col: 2 },
-                    { row: this.position.row, col: 1 }
-                ];
-                
-                if (this.isCastlingPathClear(board, path)) {
-                    moves.push({
-                        row: this.position.row,
-                        col: 2,
-                        type: 'castle'
-                    });
-                }
+            if (this.canCastleQueenside(board)) {
+                moves.push({
+                    row: this.position.row,
+                    col: this.position.col - 2,
+                    type: 'castle'
+                });
             }
         }
 
         return moves;
     }
 
-    private isCastlingPathClear(board: ChessBoard, path: Position[]): boolean {
-        const opposingColor = this.color === 'white' ? 'black' : 'white';
-        
-        return path.every(pos => {
-            // La case doit être vide
-            if (board.getPiece(pos.row, pos.col)) return false;
+    private canCastleKingside(board: ChessBoard): boolean {
+        // Vérifier la tour du côté roi
+        const rook = board.getPiece(this.position.row, 7);
+        if (!(rook instanceof Rook) || rook.getHasMoved()) {
+            return false;
+        }
+
+        // Vérifier si les cases entre le roi et la tour sont vides
+        for (let col = this.position.col + 1; col < 7; col++) {
+            if (board.getPiece(this.position.row, col)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private canCastleQueenside(board: ChessBoard): boolean {
+        // Vérifier la tour du côté dame
+        const rook = board.getPiece(this.position.row, 0);
+        if (!(rook instanceof Rook) || rook.getHasMoved()) {
+            return false;
+        }
+
+        // Vérifier si les cases entre le roi et la tour sont vides
+        for (let col = this.position.col - 1; col > 0; col--) {
+            if (board.getPiece(this.position.row, col)) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    handleCastling(board: ChessBoard, newPosition: Position): void {
+        const deltaCol = newPosition.col - this.position.col;
+        if (Math.abs(deltaCol) === 2) {
+            // C'est un roque
+            const isKingside = deltaCol > 0;
+            const rookFromCol = isKingside ? 7 : 0;
+            const rookToCol = isKingside ? 5 : 3;
             
-            // La case ne doit pas être sous attaque
-            if (GameRules.isSquareUnderAttack(board, pos, opposingColor)) return false;
-            
-            return true;
-        });
+            const rook = board.getPiece(this.position.row, rookFromCol);
+            if (rook instanceof Rook) {
+                board.movePiece(
+                    { row: this.position.row, col: rookFromCol },
+                    { row: this.position.row, col: rookToCol }
+                );
+            }
+        }
     }
 
     clone(): King {
