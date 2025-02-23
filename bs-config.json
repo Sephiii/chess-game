@@ -1,13 +1,14 @@
 {
-  "port": 3000,
-  "files": ["./dist/**/*.{html,css,js,ts}"],
+  "port": 3002,
+  "files": ["./src/**/*.{html,css}", "./dist/**/*.js"],
   "server": {
-    "baseDir": "./dist",
+    "baseDir": ["./src", "./dist"],
     "routes": {
       "/node_modules": "node_modules"
     }
   },
   "browser": "default",
   "watch": true,
-  "ignore": ["node_modules", ".git"]
+  "ignore": ["node_modules", ".git"],
+  "reloadDelay": 200
 }
