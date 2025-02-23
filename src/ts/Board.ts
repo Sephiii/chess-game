@@ -1,12 +1,12 @@
-import { Color, Position } from './types';
-import { Piece } from './pieces/Piece';
-import { Pawn } from './pieces/Pawn';
-import { Rook } from './pieces/Rook';
-import { Knight } from './pieces/Knight';
-import { Bishop } from './pieces/Bishop';
-import { Queen } from './pieces/Queen';
-import { King } from './pieces/King';
-import { PieceSprite } from './PieceSprite';
+import { Color, Position } from './types.js';
+import { Piece } from './pieces/Piece.js';
+import { Pawn } from './pieces/Pawn.js';
+import { Rook } from './pieces/Rook.js';
+import { Knight } from './pieces/Knight.js';
+import { Bishop } from './pieces/Bishop.js';
+import { Queen } from './pieces/Queen.js';
+import { King } from './pieces/King.js';
+import { PieceSprite } from './PieceSprite.js';
 
 export class ChessBoard {
     private canvas: HTMLCanvasElement;

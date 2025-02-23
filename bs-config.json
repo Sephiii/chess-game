@@ -1,11 +1,11 @@
 {
   "port": 3002,
-  "files": ["./src/**/*.{html,css}", "./dist/**/*.js"],
+  "files": ["./dist/**/*"],
   "server": {
-    "baseDir": "./dist",
+    "baseDir": "dist",
     "routes": {
       "/node_modules": "node_modules",
-      "/css": "src/css"
+      "/css": "./src/css"
     }
   },
   "browser": "default",

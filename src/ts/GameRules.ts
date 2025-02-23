@@ -1,6 +1,6 @@
-import { ChessBoard } from './Board';
-import { Color, Position, GameState } from './types';
-import { King } from './pieces/King';
+import { ChessBoard } from './Board.js';
+import { Color, Position, GameState } from './types.js';
+import { King } from './pieces/King.js';
 
 export class GameRules {
     static isSquareUnderAttack(board: ChessBoard, targetPosition: Position, attackingColor: Color): boolean {

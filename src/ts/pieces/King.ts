@@ -1,8 +1,8 @@
-import { Piece } from './Piece';
-import { Color, Position, ValidMove } from '../types';
-import { ChessBoard } from '../Board';
-import { Rook } from './Rook';
-import { GameRules } from '../GameRules';
+import { Piece } from './Piece.js';
+import { Color, Position, ValidMove } from '../types.js';
+import { ChessBoard } from '../Board.js';
+import { Rook } from './Rook.js';
+import { GameRules } from '../GameRules.js';
 
 export class King extends Piece {
     constructor(color: Color, position: Position) {

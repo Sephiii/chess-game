@@ -1,7 +1,7 @@
-import { ChessBoard } from './Board';
-import { GameRules } from './GameRules';
-import { Color, Position, GameState } from './types';
-import { Pawn } from './pieces/Pawn';
+import { ChessBoard } from './Board.js';
+import { GameRules } from './GameRules.js';
+import { Color, Position, GameState } from './types.js';
+import { Pawn } from './pieces/Pawn.js';
 
 export class ChessGame {
     private board: ChessBoard;

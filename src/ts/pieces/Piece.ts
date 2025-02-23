@@ -1,5 +1,5 @@
-import { Color, Position, ValidMove } from '../types';
-import { ChessBoard } from '../Board';
+import { Color, Position, ValidMove } from '../types.js';
+import { ChessBoard } from '../Board.js';
 
 export abstract class Piece {
     protected hasMoved: boolean = false;

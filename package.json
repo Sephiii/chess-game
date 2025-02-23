@@ -4,7 +4,7 @@
   "description": "Jeu d'échecs en TypeScript",
   "main": "dist/main.js",
   "scripts": {
-    "clean": "rimraf dist/*",
+    "clean": "rimraf --glob dist/*",
     "copy-html": "copyfiles -u 1 src/index.html dist/",
     "copy-css": "copyfiles -u 1 src/css/**/*.css dist/",
     "copy": "npm run copy-html && npm run copy-css",
@@ -14,7 +14,7 @@
     "dev": "npm run build && concurrently \"npm run watch:ts\" \"npm run watch:serve\""
   },
   "author": "",
-  "license": "MIT",
+  "license": "MIT",  
   "devDependencies": {
     "@types/node": "^18.15.11",
     "concurrently": "^8.0.1",
