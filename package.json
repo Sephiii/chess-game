@@ -2,23 +2,25 @@
   "name": "chess-game",
   "version": "1.0.0",
   "description": "Jeu d'échecs en TypeScript",
-  "main": "dist/index.js",
+  "main": "dist/main.js",
   "scripts": {
-    "build": "tsc",
-    "watch": "tsc -w",
-    "start": "lite-server",
-    "dev": "concurrently \"npm run watch\" \"npm run start\"",
-    "test": "jest"
+    "clean": "rimraf dist/*",
+    "copy-html": "copyfiles -u 1 src/index.html dist/",
+    "copy-css": "copyfiles -u 1 src/css/**/*.css dist/",
+    "copy": "npm run copy-html && npm run copy-css",
+    "build": "npm run clean && tsc && npm run copy",
+    "watch:ts": "tsc -w",
+    "watch:serve": "lite-server",
+    "dev": "npm run build && concurrently \"npm run watch:ts\" \"npm run watch:serve\""
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "@types/jest": "^29.5.0",
     "@types/node": "^18.15.11",
     "concurrently": "^8.0.1",
-    "jest": "^29.5.0",
+    "copyfiles": "^2.4.1",
     "lite-server": "^2.6.1",
-    "ts-jest": "^29.1.0",
+    "rimraf": "^5.0.0",
     "typescript": "^5.0.4"
   }
 }
