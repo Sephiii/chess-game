@@ -1,6 +1,6 @@
-import { Piece } from './Piece.js';
-import { Color, Position, ValidMove } from '../types.js';
-import { ChessBoard } from '../Board.js';
+import { Piece } from './Piece';
+import { Color, Position, ValidMove } from '../types';
+import { ChessBoard } from '../Board';
 
 export class Knight extends Piece {
     constructor(color: Color, position: Position) {
@@ -17,16 +17,19 @@ export class Knight extends Piece {
         ];
 
         for (const [rowOffset, colOffset] of knightMoves) {
-            const newPosition: Position = {
-                row: this.position.row + rowOffset,
-                col: this.position.col + colOffset
-            };
+            const newRow = this.position.row + rowOffset;
+            const newCol = this.position.col + colOffset;
+            const newPosition: Position = { row: newRow, col: newCol };
 
-            if (this.canMoveTo(board, newPosition)) {
-                moves.push({
-                    ...newPosition,
-                    type: this.getMoveType(board, newPosition)
-                });
+            if (this.isValidPosition(newPosition)) {
+                const targetPiece = board.getPiece(newRow, newCol);
+                if (!targetPiece || targetPiece.color !== this.color) {
+                    moves.push({
+                        row: newRow,
+                        col: newCol,
+                        type: targetPiece ? 'capture' : 'normal'
+                    });
+                }
             }
         }
 
