@@ -18,17 +18,6 @@
             <button id="restart-btn">Nouvelle Partie</button>
         </div>
     </div>
-    <script type="module">
-        import { ChessGame } from './js/Game.js';
-        
-        document.addEventListener('DOMContentLoaded', async () => {
-            const game = new ChessGame();
-            await game.init();
-
-            document.getElementById('restart-btn')?.addEventListener('click', () => {
-                game.restart();
-            });
-        });
-    </script>
+    <script type="module" src="js/main.js"></script>
 </body>
 </html>
